@@ -1,11 +1,11 @@
-# Proposal: 多模态创作入口
+# 提案：多模态创作入口
 
 ## 状态
 
-- Proposal issue: #3
+- 来源 Issue：#3
 - 当前决策标签：`Proposal-Accepted`, `FullSpec`
-- 所属 Milestone：MS1：战略决策与首个可串联版本（第 1-2 周）
-- 本文用途：将 Issue #3 中的产品设计整理为可逐行评审的 proposal 文档。
+- 所属里程碑：MS1：战略决策与首个可串联版本（第 1-2 周）
+- 本文用途：将 Issue #3 中的产品设计整理为可逐行评审的提案文档。
 
 ## 动机 / 用户故事
 
@@ -72,7 +72,7 @@
 
 ## 基本概念与信息结构
 
-### InputAsset
+### 输入资产（InputAsset）
 
 表示用户提供的输入资产。
 
@@ -80,7 +80,7 @@
 - `content`: 文本、图片文件或模型文件
 - `metadata`: 文件名、格式、尺寸、大小等基础信息
 
-### CreationIntent
+### 创作意图（CreationIntent）
 
 表示系统根据输入推断出的创作意图。
 
@@ -88,11 +88,11 @@
 - `confidence`: 系统识别置信度
 - `userConfirmed`: 用户是否确认该流程
 
-### CreationSession
+### 创作会话（CreationSession）
 
 表示一次从输入到模型、审计、切片、打印的创作会话。
 
-## 原型 / Demo
+## 原型 / 演示
 
 创作页包含：
 
@@ -127,7 +127,7 @@
 - 提议后的行为：系统不得进入生成流程。
 - 验收：页面提示“当前文件类型不支持，请上传图片或 GLB/STL/OBJ 模型”。
 
-## Discussion History
+## 讨论历史
 
-- Original proposal issue: #3
-- This PR is a proposal review PR, not an implementation PR.
+- 原始提案 Issue：#3
+- 当前 PR 是提案评审 PR，不是实现 PR。
