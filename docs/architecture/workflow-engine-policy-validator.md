@@ -4,7 +4,7 @@
 
 建立主链的确定性执行层：Workflow Engine 保存并推进真实状态，Policy Validator 负责执行前安全门禁，TaskLog 与 WorkflowEvent 提供可追溯记录。
 
-该执行层必须保证 Agent 或 API 只能提出命令，不能绕过状态机、审计前置条件、用户确认和设备能力校验直接触发关键动作。
+该执行层必须保证 Agent 或 API 只能提出命令，不能绕过状态机、可打印性检查前置条件、用户确认和设备能力校验直接触发关键动作。
 
 ## 架构边界
 
@@ -12,7 +12,7 @@
 
 - 定义 `WorkflowCommand`、`WorkflowResult` 和 `WorkflowEvent` 的职责与契约。
 - 只允许 Workflow Engine 通过领域状态机改变真实状态。
-- 在执行前校验当前状态、目标 revision、审计前置条件、用户确认、设备能力和幂等键。
+- 在执行前校验当前状态、目标 revision、可打印性检查前置条件、用户确认、设备能力和幂等键。
 - 强制执行切片和真实打印门禁。
 - 写入包含 `traceId`、输入/输出 hash、状态和错误码的 `TaskLog`。
 - 定义失败、重复提交和取消的最小行为。
@@ -37,7 +37,7 @@
 ### Policy Validator
 
 - 校验当前状态和目标 revision 是否仍有效。
-- 校验可打印审计等前置条件。
+- 校验可打印性检查等前置条件。
 - 校验用户确认和设备能力。
 - 校验幂等键和权限边界。
 - 返回结构化拒绝原因，不直接改变状态。
@@ -87,7 +87,7 @@
 
 ```text
 Agent 或 API 提交 WorkflowCommand
--> Policy Validator 校验状态、revision、审计、确认、设备和幂等键
+-> Policy Validator 校验状态、revision、检查、确认、设备和幂等键
 -> 校验失败：返回结构化拒绝并写入 TaskLog / WorkflowEvent
 -> 校验通过：Workflow Engine 按状态机执行状态迁移
 -> 调用已经授权的执行能力
@@ -96,7 +96,7 @@ Agent 或 API 提交 WorkflowCommand
 
 ## 强制门禁
 
-- 没有有效审计的 revision 不得进入切片。
+- 没有有效检查的 revision 不得进入切片。
 - 目标 revision 已失效时不得继续执行后续动作。
 - 没有有效 `PrintChecklist.userConfirmedAt` 时不得启动真实打印。
 - 设备能力不满足命令要求时不得执行物理动作。
@@ -129,7 +129,7 @@ Agent 或 API 提交的 Command 必须经过 Policy Validator 后才能执行；
 
 ### 验收 2：安全门禁有效
 
-无有效审计、目标 revision 失效、用户未确认打印或设备能力不满足时，命令被阻断并返回稳定错误码。
+无有效检查、目标 revision 失效、用户未确认打印或设备能力不满足时，命令被阻断并返回稳定错误码。
 
 ### 验收 3：执行记录可追溯
 
