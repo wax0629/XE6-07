@@ -1,8 +1,8 @@
-# 提案：Hunyuan3D / ComfyUI 服务器目录结构整理
+# 提案：Hunyuan3D / ComfyUI 算法服务目录结构整理
 
 ## 1. 整理结果
 
-完整 ComfyUI、Hunyuan3D 主开发源码、模型、缓存、工作流和运行数据已经从 `/root` 及零散目录归入 `/srv/3d-printing-ai`。所有仍可能被旧脚本使用的路径均保留兼容软链接。
+完整 ComfyUI、Hunyuan3D 主开发源码、模型、缓存、工作流和运行数据已经从 `/root` 及零散目录归入 `/srv/3d-printing-ai`。该目录由算法组维护，承载从输入到 3D 产物的算法服务；后端只调用受控的内部算法 API，不读取此目录或直接调用 ComfyUI。所有仍可能被旧脚本使用的路径均保留兼容软链接。
 
 整理过程中没有重新下载、复制或替换大模型。两个主要 Comfy 模型迁移前后的设备号、inode 和文件大小完全一致，表明本次只是同一文件系统内移动：
 
@@ -17,8 +17,8 @@
 
 ```text
 /srv/3d-printing-ai/
-├── platform/                         # 后续业务开发目录
-│   ├── api/                          # FastAPI，当前预留
+├── platform/                         # 算法服务开发目录
+│   ├── api/                          # 仅供后端调用的内部算法 API
 │   ├── comfy/
 │   │   ├── workflows/
 │   │   │   ├── source/               # ComfyUI 可编辑源工作流
@@ -157,13 +157,15 @@ ComfyUI 中原来的工作流路径已经链接到该目录，继续从 UI 保�
 6. Python 环境仍位于 `/root/miniconda3/envs/comfy_hunyuan`，尚未迁移到 `venvs`。
 7. API 工作流、自定义 Artifact Output 节点、FastAPI、systemd 和 Nginx 尚未实施。
 
+其中第 1、2 项是算法服务接入前的阻塞项。完整 ComfyUI 必须改为非 root 守护进程，并绑定 `127.0.0.1` 或由防火墙限制为算法服务内部可达；在该门禁完成前，只允许通过 SSH 隧道进行开发调试，不得向后端、前端、Agent 或公网直接开放 8188。
+
 ## 8. 后续开发规则
 
-- 业务代码放入 `platform`，不要继续写入 `/root`。
+- 算法服务代码放入 `platform`，不要继续写入 `/root`。
 - 第三方固定版本源码放入 `vendor`。
 - 模型只放入 `models`。
 - Hugging Face、Torch 和运行缓存只放入 `cache`。
-- API 任务输入输出使用 `runtime/jobs/<job_id>`。
+- 算法任务输入输出使用 `runtime/jobs/<algorithm_job_id>`。
 - 可长期交付的产物放入 `outputs` 或后续对象存储。
 - 临时试验文件放入 `runtime`，不得放到源码和模型目录。
 - 新服务配置放入 `platform/deploy`，敏感环境变量最终放入 `/etc/hunyuan3d-platform`。
@@ -175,4 +177,5 @@ ComfyUI 中原来的工作流路径已经链接到该目录，继续从 UI 保�
 1. 裁剪 geometry/textured 两份 API 工作流。
 2. 修复 Front/Back/Left/Right 的独立输入绑定。
 3. 增加可被 Comfy history 读取的 Artifact Output 节点。
-4. 将 ComfyUI、任务 Worker 和 FastAPI 纳入 systemd，并通过 Nginx 仅暴露受控 API。
+4. 将 ComfyUI、算法任务 Worker 和 FastAPI 纳入 systemd，并通过 Nginx 仅向后端服务暴露受控内部 API。
+5. 验证前端、外部 Agent 和公网无法直接访问 ComfyUI 及算法任务端口。
